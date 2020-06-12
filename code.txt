@@ -1,0 +1,200 @@
+#include <stdio.h>
+#include <stdlib.h>
+#define SIZE 100
+
+
+typedef struct treeNode{
+	char data;
+	struct treeNode* left;
+	struct treeNode* right;
+} treeNode;
+
+typedef treeNode* element;
+
+typedef struct QueueNode{
+	element item;
+	struct QueueNode* link;
+} QueueNode;
+
+typedef struct{
+	QueueNode* front;
+	QueueNode* rear;
+} QueueType;
+
+void init(QueueType* q){
+	q->front=q->rear=NULL;
+}
+
+int is_empty(QueueType* q){
+	return(q->front==NULL);
+}
+
+void enqueue(QueueType *q, element item){
+	QueueNode* temp=(QueueNode*)malloc(sizeof(QueueNode));
+	if(temp==NULL){
+		printf("error\n");
+		return;
+	}
+	else{
+		temp->item=item;
+		temp->link=NULL;
+		if(is_empty(q)){
+			q->front=temp;
+			q->rear=temp;
+		}
+		else{
+			q->rear->link=temp;
+			q->rear=temp;
+		}
+	}
+}
+
+element dequeue(QueueType* q){
+	QueueNode* temp=q->front;
+	element item;
+	if(is_empty(q)){
+		printf("error\n");
+		return;
+	}
+	else{
+		item=temp->item;
+		q->front=q->front->link;
+		if(q->front==NULL)
+			q->rear=NULL;
+		free(temp);
+		return item;
+	}
+}
+
+int top=-1;
+treeNode* stack[SIZE];
+
+treeNode* makeRootNode(char data,treeNode* leftNode, treeNode* rightNode){
+	treeNode* root= (treeNode*)malloc(sizeof(treeNode));
+	root->data=data;
+	root->left= leftNode;
+	root->right=rightNode;
+	return root;
+}
+void push(treeNode* root){
+	if(top<SIZE-1&&root!=NULL)
+		stack[++top]=root;
+}
+
+treeNode* pop(){
+	treeNode* temp=NULL;
+	if(top>=0)
+		temp=stack[top--];
+	return temp;
+}
+
+
+
+
+void preorder(treeNode* root){
+	push(root);
+	while(1){
+		root=pop();
+		if(!root)
+			break;
+		printf("%c ",root->data);
+		push(root->right);
+		push(root->left);
+	}
+	printf("\n");
+}
+
+void inorder(treeNode* root){
+	while(1){
+		while(root->left!=NULL){
+			push(root);
+			root=root->left;
+			if(root->left==NULL){
+				printf("%c ",root->data);
+			}
+		}
+		root=pop();
+		if(!root)
+			break;
+		printf("%c ",root->data);
+		root=root->right;
+		if(root->left==NULL&&root->right==NULL)
+			printf("%c ",root->data);
+	}
+	printf("\n");
+}
+
+void postorder(treeNode* root){
+	treeNode* temp;
+	while(1){
+		while(root->left!=NULL){
+			push(root);
+			root=root->left;
+			if(root->left==NULL&&root->right==NULL){
+				printf("%c ",root->data);
+			}
+		}
+		root=pop();
+		temp=root;
+		if(!root)
+			break;
+		if(root->right!=NULL){
+			if(root->right->data!=NULL){
+				if(temp==root)
+					root=root->right;
+				else{
+					push(root);
+					root=root->right;
+				}
+				if(root->left==NULL&&root->right==NULL){
+					printf("%c ",root->data);
+					printf("%c ",temp->data);
+					
+				}
+			}
+		}
+
+	}
+	printf("\n");
+}
+
+
+
+
+void levelorder(treeNode* root){
+	QueueType q;
+	init(&q);
+	if(root==NULL)
+		return;
+	enqueue(&q,root);
+	while(!is_empty(&q)){
+		root=dequeue(&q);
+		printf("%c ",root->data);
+		if(root->left)
+			enqueue(&q,root->left);
+		if(root->right)
+			enqueue(&q,root->right);
+	}
+	printf("\n");
+}
+
+
+int main(){
+	treeNode* n7=makeRootNode('D',NULL,NULL);
+	treeNode* n6=makeRootNode('C',NULL,NULL);
+	treeNode* n5=makeRootNode('B',NULL,NULL);
+	treeNode* n4=makeRootNode('A',NULL,NULL);
+	treeNode* n3=makeRootNode('/',n6,n7);
+	treeNode* n2=makeRootNode('*',n4,n5);
+	treeNode* n1=makeRootNode('-',n2,n3);
+	
+	printf("전위 순회 : ");
+	preorder(n1);
+	printf("중위 순회 : ");
+	inorder(n1);
+	printf("후위 순회 : ");
+	postorder(n1);
+	printf("레벨 순회 : ");
+	levelorder(n1);
+	return 0;
+}
